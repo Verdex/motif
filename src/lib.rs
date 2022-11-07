@@ -88,6 +88,7 @@ macro_rules! group {
 #[macro_export]
 macro_rules! pred {
     ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
+        #[allow(unused_variables)]
         fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
 
             let mut rp = input.clone();
