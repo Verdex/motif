@@ -724,7 +724,6 @@ mod test {
         Ok(())
     }
 
-
     #[test]
     fn seq_should_handle_zero_or_more_anon_pattern() -> Result<(), MatchError> {
         seq!(main: u8 = * 0x01, * 0x03, * 0x02, { 0xFF });
@@ -826,6 +825,23 @@ mod test {
         let o = main(&mut i)?;
 
         assert_eq!( o, 0xEE );
+
+        Ok(())
+    }
+
+    #[test]
+    fn seq_should_handle_public_visibility() -> Result<(), MatchError> {
+        mod inner {
+            use super::*;
+            seq!(pub main: u8 = 1, { 1 });
+        }
+
+        let v : Vec<u8> = vec![1];
+        let mut i = v.into_iter().enumerate();
+
+        let o = inner::main(&mut i)?;
+
+        assert_eq!( o, 1 );
 
         Ok(())
     }
