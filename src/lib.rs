@@ -21,6 +21,7 @@ impl std::error::Error for MatchError {}
 
 #[macro_export]
 macro_rules! alt {
+    // TODO vis
     ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
         fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
 
@@ -69,6 +70,7 @@ macro_rules! alt {
 
 #[macro_export]
 macro_rules! group { 
+    // TODO vis
     ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$input:ident| $b:block) => {
         fn $matcher_name<$life>($input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
             $b
