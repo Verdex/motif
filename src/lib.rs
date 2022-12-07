@@ -341,22 +341,6 @@ macro_rules! seq {
     ($vis:vis $matcher_name:ident : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
         seq!($vis $matcher_name<'a> : $in_t => $out_t = $($rest)*);
     };
-
-    ($matcher_name:ident<$life:lifetime> : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
-        seq!(priv $matcher_name<$life> : $t => $t = $($rest)*);
-    };
-
-    ($matcher_name:ident<$life:lifetime> : $t:ty = $($rest:tt)*) => {
-        seq!(priv $matcher_name<$life> : $t => $t = $($rest)*);
-    };
-
-    ($matcher_name:ident : $t:ty = $($rest:tt)*) => {
-        seq!(priv $matcher_name<'a> : $t => $t = $($rest)*);
-    };
-
-    ($matcher_name:ident : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
-        seq!(priv $matcher_name<'a> : $in_t => $out_t = $($rest)*);
-    };
 }
 
 #[cfg(test)]
