@@ -70,20 +70,19 @@ macro_rules! alt {
 
 #[macro_export]
 macro_rules! group { 
-    // TODO vis
-    ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$input:ident| $b:block) => {
-        fn $matcher_name<$life>($input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$input:ident| $b:block) => {
+        $vis fn $matcher_name<$life>($input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
             $b
         }
     };
-    ($matcher_name:ident<$life:lifetime> : $t:ty = |$input:ident| $b:block) => {
-        group!($matcher_name<$life>: $t => $t = |$input| $b);
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t:ty = |$input:ident| $b:block) => {
+        group!($vis $matcher_name<$life>: $t => $t = |$input| $b);
     };
-    ($matcher_name:ident: $t:ty = |$input:ident| $b:block) => {
-        group!($matcher_name<'a>: $t => $t = |$input| $b);
+    ($vis:vis $matcher_name:ident: $t:ty = |$input:ident| $b:block) => {
+        group!($vis $matcher_name<'a>: $t => $t = |$input| $b);
     };
-    ($matcher_name:ident: $t_in:ty => $t_out:ty = |$input:ident| $b:block) => {
-        group!($matcher_name<'a>: $t_in => $t_out = |$input| $b);
+    ($vis:vis $matcher_name:ident: $t_in:ty => $t_out:ty = |$input:ident| $b:block) => {
+        group!($vis $matcher_name<'a>: $t_in => $t_out = |$input| $b);
     };
 }
 
@@ -451,6 +450,27 @@ mod test {
         assert!( matches!( o, Err(MatchError::Error(1))) );
 
         assert_eq!( i.next(), Some((0, 0x01)) );
+    }
+
+    #[test]
+    fn group_should_handle_public_visibility() -> Result<(), MatchError> {
+        mod inner {
+            use super::*;
+            group!(pub main: u8 = |input| {
+                seq!(a: u8 = x <= _, y <= 0x01, { x + y });
+                
+                a(input)
+            });
+        }
+
+        let v : Vec<u8> = vec![0x05, 0x01];
+        let mut i = v.into_iter().enumerate();
+
+        let o = inner::main(&mut i)?;
+
+        assert_eq!( o, 0x06 );
+
+        Ok(())
     }
 
     #[test]
