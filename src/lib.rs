@@ -1005,6 +1005,23 @@ mod test {
 
         Ok(())
     }
+    
+    #[test]
+    fn pred_should_handle_public_visibility() -> Result<(), MatchError> {
+        mod inner {
+            use super::*;
+            pred!(pub even : u8 = |x| x % 2 == 0);
+        }
+
+        let v : Vec<u8> = vec![2, 3];
+        let mut i = v.into_iter().enumerate();
+
+        let o = inner::even(&mut i)?;
+
+        assert_eq!( o, 2 );
+
+        Ok(())
+    }
 
     #[test]
     fn pred_should_match() -> Result<(), MatchError> {
