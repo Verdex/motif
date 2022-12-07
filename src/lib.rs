@@ -89,9 +89,9 @@ macro_rules! group {
 
 #[macro_export]
 macro_rules! pred {
-    ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
         #[allow(unused_variables)]
-        fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
+        $vis fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
 
             let mut rp = input.clone();
 
@@ -115,14 +115,14 @@ macro_rules! pred {
         }
     };
 
-    ($matcher_name:ident : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
-        pred!($matcher_name<'a> : $t_in => $t_out = |$item| $predicate => $b);
+    ($vis:vis $matcher_name:ident : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
+        pred!($vis $matcher_name<'a> : $t_in => $t_out = |$item| $predicate => $b);
     };
-    ($matcher_name:ident<$life:lifetime> : $t:ty = |$item:ident| $predicate:expr) => {
-        pred!($matcher_name<$life> : $t => $t = |$item| $predicate => { $item });
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t:ty = |$item:ident| $predicate:expr) => {
+        pred!($vis $matcher_name<$life> : $t => $t = |$item| $predicate => { $item });
     };
-    ($matcher_name:ident : $t:ty = |$item:ident| $predicate:expr) => {
-        pred!($matcher_name<'a> : $t => $t = |$item| $predicate => { $item });
+    ($vis:vis $matcher_name:ident : $t:ty = |$item:ident| $predicate:expr) => {
+        pred!($vis $matcher_name<'a> : $t => $t = |$item| $predicate => { $item });
     };
 }
 
