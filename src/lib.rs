@@ -112,6 +112,7 @@ macro_rules! pred {
             } 
         }
     };
+
     ($matcher_name:ident : $t_in:ty => $t_out:ty = |$item:ident| $predicate:expr => $b:block) => {
         pred!($matcher_name<'a> : $t_in => $t_out = |$item| $predicate => $b);
     };
@@ -321,24 +322,40 @@ macro_rules! cases {
 
 #[macro_export]
 macro_rules! seq {
-    ($matcher_name:ident<$life:lifetime> : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
         #[allow(dead_code)]
-        fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $in_t)> + Clone)) -> Result<$out_t, MatchError> {
+        $vis fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $in_t)> + Clone)) -> Result<$out_t, MatchError> {
             let mut _rp = input.clone();
             cases!(input, _rp, $($rest)*);
         }
     };
 
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t:ty = $($rest:tt)*) => {
+        seq!($vis $matcher_name<$life> : $t => $t = $($rest)*);
+    };
+
+    ($vis:vis $matcher_name:ident : $t:ty = $($rest:tt)*) => {
+        seq!($vis $matcher_name<'a> : $t => $t = $($rest)*);
+    };
+
+    ($vis:vis $matcher_name:ident : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
+        seq!($vis $matcher_name<'a> : $in_t => $out_t = $($rest)*);
+    };
+
+    ($matcher_name:ident<$life:lifetime> : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
+        seq!(priv $matcher_name<$life> : $t => $t = $($rest)*);
+    };
+
     ($matcher_name:ident<$life:lifetime> : $t:ty = $($rest:tt)*) => {
-        seq!($matcher_name<$life> : $t => $t = $($rest)*);
+        seq!(priv $matcher_name<$life> : $t => $t = $($rest)*);
     };
 
     ($matcher_name:ident : $t:ty = $($rest:tt)*) => {
-        seq!($matcher_name<'a> : $t => $t = $($rest)*);
+        seq!(priv $matcher_name<'a> : $t => $t = $($rest)*);
     };
 
     ($matcher_name:ident : $in_t:ty => $out_t:ty = $($rest:tt)*) => {
-        seq!($matcher_name<'a> : $in_t => $out_t = $($rest)*);
+        seq!(priv $matcher_name<'a> : $in_t => $out_t = $($rest)*);
     };
 }
 
