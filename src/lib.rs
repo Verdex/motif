@@ -21,9 +21,8 @@ impl std::error::Error for MatchError {}
 
 #[macro_export]
 macro_rules! alt {
-    // TODO vis
-    ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
-        fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
+        $vis fn $matcher_name<$life>(input : &mut (impl Iterator<Item = (usize, $t_in)> + Clone)) -> Result<$t_out, MatchError> {
 
             let mut _error : Option<MatchError> = None;
 
@@ -45,26 +44,26 @@ macro_rules! alt {
             Err(_error.unwrap())
         }
     };
-    ($matcher_name:ident<$life:lifetime> : $t:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
-        alt!($matcher_name<$life> : $t => $t = $($m)|+ => |$name| $b);
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
+        alt!($vis $matcher_name<$life> : $t => $t = $($m)|+ => |$name| $b);
     };
-    ($matcher_name:ident : $t:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
-        alt!($matcher_name<'a> : $t => $t = $($m)|+ => |$name| $b);
+    ($vis:vis $matcher_name:ident : $t:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
+        alt!($vis $matcher_name<'a> : $t => $t = $($m)|+ => |$name| $b);
     };
-    ($matcher_name:ident : $t_in:ty => $t_out:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
-        alt!($matcher_name<'a> : $t_in => $t_out = $($m)|+ => |$name| $b);
+    ($vis:vis $matcher_name:ident : $t_in:ty => $t_out:ty = $($m:ident)|+ => |$name:ident| $b:block) => {
+        alt!($vis $matcher_name<'a> : $t_in => $t_out = $($m)|+ => |$name| $b);
     };
-    ($matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = $($m:ident)|+) => {
-        alt!($matcher_name<$life> : $t_in => $t_out = $($m)|+ => |x| { x });
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t_in:ty => $t_out:ty = $($m:ident)|+) => {
+        alt!($vis $matcher_name<$life> : $t_in => $t_out = $($m)|+ => |x| { x });
     };
-    ($matcher_name:ident<$life:lifetime> : $t:ty = $($m:ident)|+) => {
-        alt!($matcher_name<$life> : $t => $t = $($m)|+ => |x| { x });
+    ($vis:vis $matcher_name:ident<$life:lifetime> : $t:ty = $($m:ident)|+) => {
+        alt!($vis $matcher_name<$life> : $t => $t = $($m)|+ => |x| { x });
     };
-    ($matcher_name:ident : $t:ty = $($m:ident)|+) => {
-        alt!($matcher_name<'a> : $t => $t = $($m)|+ => |x| { x });
+    ($vis:vis $matcher_name:ident : $t:ty = $($m:ident)|+) => {
+        alt!($vis $matcher_name<'a> : $t => $t = $($m)|+ => |x| { x });
     };
-    ($matcher_name:ident : $t_in:ty => $t_out:ty = $($m:ident)|+) => {
-        alt!($matcher_name<'a> : $t_in => $t_out = $($m)|+ => |x| { x });
+    ($vis:vis $matcher_name:ident : $t_in:ty => $t_out:ty = $($m:ident)|+) => {
+        alt!($vis $matcher_name<'a> : $t_in => $t_out = $($m)|+ => |x| { x });
     };
 }
 
@@ -864,6 +863,25 @@ mod test {
         let o = inner::main(&mut i)?;
 
         assert_eq!( o, 1 );
+
+        Ok(())
+    }
+
+    #[test]
+    fn alt_should_handle_public_visibility() -> Result<(), MatchError> {
+        mod inner {
+            use super::*;
+            pred!(even : u8 = |x| x % 2 == 0);
+            pred!(odd : u8 = |x| x % 2 == 1);
+            alt!(pub even_or_odd : u8 = even | odd => |b| { b + 1 });
+        }
+
+        let v : Vec<u8> = vec![2];
+        let mut i = v.into_iter().enumerate();
+
+        let o = inner::even_or_odd(&mut i)?;
+
+        assert_eq!( o, 3 );
 
         Ok(())
     }
